@@ -1,0 +1,27 @@
+{
+	"name": "Notiheze",
+	"version": "0.0.1",
+	"author": [
+		"Original Authority",
+		"WikiTide Foundation"
+	],
+	"license-name": "GPL-3.0-or-later",
+	"description-msg": "notiheze-desc",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">=1.39.6"
+	},
+	"SpecialPages": {},
+	"ExtensionMessageFiles": {},
+	"MessagesDirs": {},
+	"AutoloadNamespaces": {},
+	"ServiceWiringFiles": {},
+	"ResourceModules": {},
+	"ResourceFileModulePaths": {},
+	"APIModules": {},
+	"Hooks": {},
+	"config": {},
+	"ConfigRegistry": {},
+	"manifest_version": 2,
+	"load_composer_autoloader": true
+}
