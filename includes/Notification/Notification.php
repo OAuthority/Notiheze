@@ -228,6 +228,17 @@ class Notification {
 	}
 
 	/**
+	 * Get icon configuration.
+	 *
+	 * @param string $type Icon Type, one of: 'notification', 'category', 'subcategory'
+	 *
+	 * @return array Array containing key of type name to the URL location for it.
+	 */
+	private function getIconConfig( string $type ): array {
+		return $this->config->get( 'NotihezeIcons' )[$type];
+	}
+
+	/**
 	 * Assign the importance of this notification, so that more important notifs can be shown firwst
 	 *
 	 * @return int
