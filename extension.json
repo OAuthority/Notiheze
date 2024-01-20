@@ -14,7 +14,9 @@
 	"SpecialPages": {},
 	"ExtensionMessageFiles": {},
 	"MessagesDirs": {},
-	"AutoloadNamespaces": {},
+	"AutoloadNamespaces": {
+		"Miraheze\\Notiheze\\Notification": "includes/Notification"
+	},
 	"ServiceWiringFiles": {},
 	"ResourceModules": {},
 	"ResourceFileModulePaths": {},

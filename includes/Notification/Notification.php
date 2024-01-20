@@ -13,13 +13,41 @@
 
 namespace Miraheze\Notiheze\Notification;
 
+use Config;
 use MediaWiki\User\UserFactory;
 use Message;
+use WikiMap;
+use WikiReference;
 
 class Notification {
 
-	// Let's come back to this when we've figured out what we're doing
-	public function __construct( private UserFactory $userFactory, private ?string $agentId=  null ) {}
+	/**
+	 * Main constructor for this class, set up everything we need.
+	 * @param UserFactory $userFactory
+	 * @param Config $config
+	 * @param string $type
+	 * @param string $message
+	 * @param string $canonicalUrl
+	 * @param int $id
+	 * @param int $creation
+	 * @param int $read
+	 * @param string|null $originId
+	 * @param string|null $agentId
+	 */
+	public function __construct(
+		private UserFactory $userFactory,
+		private Config $config,
+		private string $type,
+		private string $message,
+		private string $canonicalUrl,
+		private int $id = 0,
+		private int $creation = 0,
+		private int $read = 0,
+		private ?string $originId = null,
+	 	private ?string $agentId= null,
+	) {
+
+	}
 
 	/**
 	 * Get the ID of the notification
@@ -125,8 +153,110 @@ class Notification {
         return $this->userFactory->newFromId( (int)$this->agentId )->getUserPage()->getFullURL();
     }
 
+	/**
+	 * Do any some cleanup on message parameters and return them
+	 *
+	 * @return array
+	 */
+	protected function getMessageParameters(): array {
+		$json = json_decode( $this->message, true);
 
+		$parameters = [];
 
+		foreach ( $json as $parameter ) {
+			$parameters[$parameter[0]] = $parameter[1];
+		}
 
+		ksort( $parameters, SORT_NATURAL );
 
+		return $parameters;
+	}
+
+	/**
+	 * Return the origin of the notification; an object of the wiki with information
+	 * This should have information about the wiki such as its url, sitname, etc.
+	 * Can we possibly just look up its json config file in /cache and decode it?
+	 */
+	public function getOrigin() {
+		// check if the origin doesn't exist, and bail
+		if ( !$this->originId || $this->originId = null ) {
+			return null;
+		}
+
+		// Check the wiki map for the origin id we pass in, which should be a database name
+		if ( WikiMap::getWiki( $this->originId ) !== null ) {
+			// return the wiki object
+			$wiki = WikiMap::getWiki( $this->originId );
+		}
+
+		// return the wiki object, which should be from $wgConf
+		return $wiki;
+	}
+
+	/**
+	 * Get the url of the origin
+	 *
+	 * @return string
+	 */
+	public function getOriginUrl() {
+		$origin = $this->getOrigin();
+
+		// get the canonical server url for this wiki from the wiki map
+		$originUrl = $origin->getCanonicalServer();
+
+		// return it as a string for further use
+		return $originUrl;
+	}
+
+	/**
+	 * Get the category of this notification
+	 * is it a notification, alert, something else?
+	 *
+	 */
+	public function getCategory(): string {
+		// we don't yet have a notification service, but we will, leave this here for now?!
+		return $this->notificationService->getCategoryFromType( $this->type );
+	}
+
+	/**
+	 * Get the image for the notification icon and return its url
+	 *
+	 * @return string|null
+	 */
+	public function getNotificationIcon(): ?string {
+		return $this->getIconConfig( 'notification' )[$this->type] ?? null;
+	}
+
+	/**
+	 * Assign the importance of this notification, so that more important notifs can be shown firwst
+	 *
+	 * @return int
+	 */
+	public function getImportance(): int {
+		return $this->config->get( 'Notiheze' )[ $this->type ][ 'importance' ] ?? 0;
+	}
+
+	/**
+	 * Return an array object of this notification that we can use externally and in APIs.
+	 *
+	 * @return array
+	 */
+	public function notificationToArray(): array {
+		return [
+			'icons' => [
+				'notification' => $this->getNotificationIcon()
+			],
+			'category' => $this->getCategory(),
+			'id' => $this->id,
+			'type' => $this->type,
+			'header_short' => $this->getHeader(),
+			'header_long' => $this->getHeader( true ),
+			'created_at' => $this->creation,
+			'read_at' => $this->read,
+			'origin_url' => $this->getOriginUrl(),
+			'agent_url' => $this->getAgentUrl(),
+			'canonical_url' => $this->canonicalUrl,
+			'importance' => $this->getImportance(),
+		];
+	}
 }
