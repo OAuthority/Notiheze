@@ -13,12 +13,13 @@
 
 namespace Miraheze\Notiheze\Notification;
 
+use MediaWiki\User\UserFactory;
 use Message;
 
 class Notification {
 
 	// Let's come back to this when we've figured out what we're doing
-	public function __construct() {}
+	public function __construct( private UserFactory $userFactory, private ?string $agentId=  null ) {}
 
 	/**
 	 * Get the ID of the notification
@@ -87,7 +88,6 @@ class Notification {
 	 */
 	public function getHeader(bool $long = false): Message {
 		$parameters = $this->getMessageParameters();
-		unset($parameters['user_note']);
 
 		// Ensure array keys start at 1
 		$parameters = $this->normalizeArrayKeys($parameters);
@@ -113,6 +113,17 @@ class Notification {
 
 		return $array;
 	}
+
+    /**
+     * Get the agent of this notification, whoever sent the notification
+     * @return string|null
+     */
+    public function getAgentUrl(): ?string {
+        if ( $this->agentId === null ) {
+            return null;
+        }
+        return $this->userFactory->newFromId( (int)$this->agentId )->getUserPage()->getFullURL();
+    }
 
 
 
